@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Lazop.Domain/Lazop.Domain.csproj" />
+  <Project Path="Lazop.Service/Lazop.Service.csproj" />
+  <Project Path="Web.Lazop/Web.Lazop.csproj" />
+</Solution>

@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Web.Lazop</RootNamespace>
+    <AssemblyName>Web.Lazop</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Lazop.Domain\Lazop.Domain.csproj" />
+    <ProjectReference Include="..\Lazop.Service\Lazop.Service.csproj" />
+  </ItemGroup>
+</Project>
