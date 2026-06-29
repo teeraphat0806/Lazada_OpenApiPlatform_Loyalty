@@ -1,6 +1,5 @@
 using System;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Lazop.Domain.Interfaces;
 using Lazop.Domain.RequestModels;
 using Lazop.Domain.ViewModels;
