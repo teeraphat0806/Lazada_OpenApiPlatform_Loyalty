@@ -10,6 +10,8 @@ namespace Lazop.Domain.Enums
     {
         Others = 0,
         Active = 1,
-        Inactive = 2
+        Inactive = 2,
+        Deleted = 3,
+        Pending = 4
     }
 }
