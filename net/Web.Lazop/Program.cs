@@ -24,8 +24,8 @@ namespace Web.Lazop
             var builder = WebApplication.CreateBuilder(args);
 
             // Fetch settings from configuration (appsettings.json) with fallback to original values
-            string appKey = builder.Configuration["LazadaConfig:AppKey"] ?? "139717";
-            string appSecret = builder.Configuration["LazadaConfig:AppSecret"] ?? "TkOaWRFeJdPBd1iKPrYEkS3Lf4f8cAuP";
+            string appKey = builder.Configuration["LazadaConfig:AppKey"] ?? "139831";
+            string appSecret = builder.Configuration["LazadaConfig:AppSecret"] ?? "8fbYLuuWYmrjEaWsqRctpQBwweJjTI1d";
 
             // Register MVC Controllers
             builder.Services.AddControllers();

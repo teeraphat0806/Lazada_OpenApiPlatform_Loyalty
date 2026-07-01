@@ -34,8 +34,8 @@ namespace Web.Lazop.Controllers
             _configuration = configuration;
             _logger = logger;
             _webhookService = webhookService;
-            _appKey = _configuration["LazadaConfig:AppKey"] ?? "139717";
-            _appSecret = _configuration["LazadaConfig:AppSecret"] ?? "TkOaWRFeJdPBd1iKPrYEkS3Lf4f8cAuP";
+            _appKey = _configuration["LazadaConfig:AppKey"] ?? "139831";
+            _appSecret = _configuration["LazadaConfig:AppSecret"] ?? "eWWFgFKgXLHm8cD9Ox68cuHno2Z3jZV3";
         }
 
         [HttpPost("webhook")]
@@ -66,6 +66,10 @@ namespace Web.Lazop.Controllers
                 return BadRequest("Missing payload.");
             }
 
+            _logger.LogInformation("Lazada Webhook Body: {Body}", jsonBody);
+            _logger.LogInformation("Lazada Webhook AppKey: {AppKey}", _appKey);
+            _logger.LogInformation("Lazada Webhook AppSecret: {AppSecret}", _appSecret);
+
             // 3. สร้าง Base String ตามสูตร: {AppKey} + {MessageBody}
             string baseString = _appKey + jsonBody;
 
@@ -75,6 +79,15 @@ namespace Web.Lazop.Controllers
             // 5. ตรวจสอบความถูกต้อง (เปรียบเทียบแบบ Case-Insensitive)
             if (calculatedSignature == null || !calculatedSignature.Equals(signature, StringComparison.OrdinalIgnoreCase))
             {
+                string maskedSecret = string.IsNullOrEmpty(_appSecret) ? "null" : $"{_appSecret.Substring(0, Math.Min(3, _appSecret.Length))}...{_appSecret.Substring(Math.Max(0, _appSecret.Length - 3))}";
+                
+                var headers = string.Join("; ", Request.Headers.Select(h => $"{h.Key}={h.Value}"));
+                var queryParams = string.Join("; ", Request.Query.Select(q => $"{q.Key}={q.Value}"));
+                
+                _logger.LogWarning("Lazada Webhook DEBUG: AppKey={AppKey}, AppSecret={AppSecret}", _appKey, maskedSecret);
+                _logger.LogWarning("Lazada Webhook DEBUG: Headers: {Headers}", headers);
+                _logger.LogWarning("Lazada Webhook DEBUG: QueryParams: {QueryParams}", queryParams);
+                _logger.LogWarning("Lazada Webhook DEBUG: Body Length={Length}, Body='[START]{Body}[END]'", jsonBody.Length, jsonBody);
                 _logger.LogWarning("Lazada Webhook: Signature mismatch. Expected: {Expected}, Received: {Received}", calculatedSignature, signature);
                 return BadRequest("Signature not matched.");
             }
