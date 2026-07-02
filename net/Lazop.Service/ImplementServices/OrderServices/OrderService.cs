@@ -62,5 +62,28 @@ namespace Lazop.Service.ImplementServices.OrderServices
                 Body = response.Body
             };
         }
+
+        /// <summary>
+        /// Retrieves items for multiple orders.
+        /// API path: /orders/items/get
+        /// </summary>
+        public OrderResponseViewModel GetMultipleOrderItems(GetMultipleOrderItemsRequestModel param)
+        {
+            LazopRequest request = new LazopRequest("/orders/items/get");
+            request.SetHttpMethod("GET");
+            
+            string orderIdsStr = $"[{string.Join(",", param.OrderIds)}]";
+            request.AddApiParameter("order_ids", orderIdsStr);
+            
+            var response = _client.Execute(request, param.AccessToken);
+            return new OrderResponseViewModel
+            {
+                Code = response.Code,
+                Type = response.Type,
+                Message = response.Message,
+                RequestId = response.RequestId,
+                Body = response.Body
+            };
+        }
     }
 }
