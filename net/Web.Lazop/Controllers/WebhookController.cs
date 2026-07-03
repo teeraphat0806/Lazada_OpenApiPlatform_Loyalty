@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using StackExchange.Redis;
 using Lazop.Domain.Enums;
 using Lazop.Domain.Models;
 using Lazop.Domain.RequestModels.WebhookRequestModels;
@@ -23,17 +24,20 @@ namespace Web.Lazop.Controllers
         private readonly IConfiguration _configuration;
         private readonly ILogger<LazadaWebhookController> _logger;
         private readonly ILazadaWebhookService _webhookService;
+        private readonly IDatabase? _cache;
         private readonly string _appKey;
         private readonly string _appSecret;
 
         public LazadaWebhookController(
             IConfiguration configuration, 
             ILogger<LazadaWebhookController> logger,
-            ILazadaWebhookService webhookService)
+            ILazadaWebhookService webhookService,
+            IConnectionMultiplexer? redisConnection = null)
         {
             _configuration = configuration;
             _logger = logger;
             _webhookService = webhookService;
+            _cache = redisConnection?.GetDatabase();
             _appKey = _configuration["LazadaConfig:AppKey"] ?? "139831";
             _appSecret = _configuration["LazadaConfig:AppSecret"] ?? "eWWFgFKgXLHm8cD9Ox68cuHno2Z3jZV3";
         }
@@ -147,16 +151,30 @@ namespace Web.Lazop.Controllers
                 }
             }
 
+            // บันทึก Log ข้อมูล Webhook ลง Memory Storage
+            InMemoryStorage.LazadaMessages.Add(new LazadaMessage
+            {
+                Action = "webhook",
+                Response = jsonBody,
+                CreatedTime = DateTime.UtcNow
+            });
+
+            if (_cache != null)
+            {
+                try
+                {
+                    await _cache.ListLeftPushAsync("lazada:webhook:queue", jsonBody);
+                    _logger.LogInformation("Lazada Webhook successfully queued to Redis list 'lazada:webhook:queue'.");
+                    return Ok();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to queue Lazada Webhook payload to Redis. Falling back to synchronous processing.");
+                }
+            }
+
             try
             {
-                // บันทึก Log ข้อมูล Webhook ลง Memory Storage
-                InMemoryStorage.LazadaMessages.Add(new LazadaMessage
-                {
-                    Action = "webhook",
-                    Response = jsonBody,
-                    CreatedTime = DateTime.UtcNow
-                });
-
                 // Deserialize JSON payload
                 var data = JsonSerializer.Deserialize<LazadaWebhookRequest>(jsonBody, new JsonSerializerOptions
                 {
@@ -179,7 +197,7 @@ namespace Web.Lazop.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lazada Webhook processing error");
+                _logger.LogError(ex, "Lazada Webhook processing error (Sync fallback)");
             }
 
             // ตอบกลับด้วยสถานะ 200 OK ทันทีภายใน 500ms ตามกฎข้อบังคับของ Lazada Webhook

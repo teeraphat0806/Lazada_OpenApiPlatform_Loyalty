@@ -1,6 +1,7 @@
 using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using StackExchange.Redis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Lazop.Domain.Interfaces;
@@ -30,6 +31,10 @@ namespace Web.Lazop
             // Register MVC Controllers
             builder.Services.AddControllers();
 
+            // Register Redis connection multiplexer
+            string redisConnString = builder.Configuration["RedisConfig:ConnectionString"] ?? "localhost:6379";
+            builder.Services.AddSingleton<IConnectionMultiplexer>(sp => ConnectionMultiplexer.Connect(redisConnString));
+
             // Register Lazada API infrastructure in DI
             builder.Services.AddScoped<ILazopClient>(sp => new LazopClient(
                 UrlConstants.API_GATEWAY_URL_TH, // Use Thailand gateway for business APIs!
@@ -40,6 +45,9 @@ namespace Web.Lazop
             builder.Services.AddScoped<IProductService, ProductService>();
             builder.Services.AddScoped<IOrderService, OrderService>();
             builder.Services.AddScoped<ILazadaWebhookService, LazadaWebhookService>();
+
+            // Register Webhook Queue Background Service
+            builder.Services.AddHostedService<Web.Lazop.BackgroundServices.LazadaWebhookQueueWorker>();
 
             var app = builder.Build();
 

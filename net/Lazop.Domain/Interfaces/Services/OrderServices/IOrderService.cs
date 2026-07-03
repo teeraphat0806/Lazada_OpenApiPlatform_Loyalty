@@ -8,5 +8,6 @@ namespace Lazop.Domain.Interfaces.Services.OrderServices
         OrderResponseViewModel GetOrders(GetOrdersRequestModel param);
         OrderResponseViewModel GetOrderDetail(GetOrderDetailRequestModel param);
         OrderResponseViewModel GetMultipleOrderItems(GetMultipleOrderItemsRequestModel param);
+        OrderSyncState SyncHistoricalOrders(string accessToken, int daysBack);
     }
 }

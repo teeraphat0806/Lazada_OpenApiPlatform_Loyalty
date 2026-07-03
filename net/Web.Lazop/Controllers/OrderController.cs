@@ -280,5 +280,28 @@ namespace Web.Lazop.Controllers
                 return BadRequest(new { Message = $"Error merging orders and items: {ex.Message}" });
             }
         }
+
+        [HttpPost("sync-historical")]
+        public IActionResult SyncHistoricalOrders([FromQuery] string accessToken, [FromQuery] int daysBack = 30)
+        {
+            if (string.IsNullOrWhiteSpace(accessToken))
+            {
+                return BadRequest(new { Message = "AccessToken is required" });
+            }
+
+            try
+            {
+                var result = _orderService.SyncHistoricalOrders(accessToken, daysBack);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    Message = ex.Message,
+                    Detail = "Synchronization failed midway. Checkpoint state has been saved to Redis. Try calling this endpoint again with the same parameters to resume."
+                });
+            }
+        }
     }
 }
