@@ -12,8 +12,10 @@ namespace Lazop.Domain.Utils
             if (reader.TokenType == JsonTokenType.Number)
             {
                 int val = reader.GetInt32();
-                if (val == 0) return WebPushType.TradeOrder;
-                if (val == 10) return WebPushType.ReverseOrder;
+                if (Enum.IsDefined(typeof(WebPushType), val))
+                {
+                    return (WebPushType)val;
+                }
                 
                 throw new JsonException($"Unknown WebPushType integer value: {val}");
             }
@@ -21,13 +23,9 @@ namespace Lazop.Domain.Utils
             if (reader.TokenType == JsonTokenType.String)
             {
                 string? strVal = reader.GetString();
-                if (string.Equals(strVal, "TradeOrder", StringComparison.OrdinalIgnoreCase) || strVal == "0")
+                if (Enum.TryParse<WebPushType>(strVal, true, out var result))
                 {
-                    return WebPushType.TradeOrder;
-                }
-                if (string.Equals(strVal, "ReverseOrder", StringComparison.OrdinalIgnoreCase) || strVal == "10")
-                {
-                    return WebPushType.ReverseOrder;
+                    return result;
                 }
                 
                 throw new JsonException($"Unknown WebPushType string value: {strVal}");
